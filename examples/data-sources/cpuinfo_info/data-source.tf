@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     cpuinfo = {
-      source  = "jacky9813/cpu-info"
+      source = "jacky9813/cpu-info"
     }
     aws = {
       source  = "hashicorp/aws"
@@ -25,7 +25,7 @@ data "cpuinfo_info" "cpu_info" {}
 
 resource "terraform_data" "lambda_zip_packager" {
   provisioner "local-exec" {
-    command     = <<-EOT
+    command = <<-EOT
       pushd ${path.module}
       [ -d .build-venv ] && rm -r .build-venv
       python3.10 -m venv .build-venv
@@ -47,7 +47,7 @@ data "archive_file" "lambda_source" {
   output_file = "${path.module}/lambda_function.zip"
   source_dir  = "${path.module}/build"
 
-  depends_on  = [
+  depends_on = [
     terraform_data.lambda_zip_packager
   ]
 }

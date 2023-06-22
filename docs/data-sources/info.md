@@ -29,22 +29,29 @@ terraform {
   }
 }
 
+provider "aws" {
+  profile = "my-aws-profile"
+}
+
+provider "archive" {}
+provider "cpuinfo" {}
+
 data "cpuinfo_info" "cpu_info" {}
 
 resource "terraform_data" "lambda_zip_packager" {
   provisioner "local-exec" {
     command = <<-EOT
-        pushd ${path.module}
-        [ -d .build-venv ] && rm -r .build-venv
-        python3.10 -m venv .build-venv
-        source .build-venv
-        [ -d build ] && rm -r build
-        pip install --target build -r requirements.txt
-        cp src/lambda_function.py build/
-        deactivate
-        find build -name "__pycache__" -type d | xargs rm -rv
-        popd
-        EOT
+      pushd ${path.module}
+      [ -d .build-venv ] && rm -r .build-venv
+      python3.10 -m venv .build-venv
+      source .build-venv/bin/activate
+      [ -d build ] && rm -r build
+      pip install --target build -r requirements.txt
+      cp src/lambda_function.py build/
+      deactivate
+      find build -name "__pycache__" -type d | xargs rm -rv
+      popd
+    EOT
 
     interpreter = ["/bin/bash", "-c"]
   }
@@ -77,5 +84,6 @@ resource "aws_lambda_function" "my_python_function" {
 ### Read-Only
 
 - `features` (List of String) The hardware features that CPU supports (SSE4, AVX, AES, etc.)
+- `id` (String) The ID of this resource.
 - `isa` (String) The instruction set that CPU can use. amd64 and arm64 are common examples.
 - `name` (String) The model name of the CPU.
